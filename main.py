@@ -1,24 +1,7 @@
-import os
-import json
-import requests
-import subprocess
-import pkg_resources
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QInputDialog, QAction, QMenu
+import os, json, requests, subprocess, pkg_resources, sys, atexit
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QInputDialog, QAction, QMenu, QSystemTrayIcon
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QSystemTrayIcon
-import sys
 from PyQt5.QtCore import QTimer
-REQUIRED_PACKAGES = [
-    'PyQt5',
-    'requests'
-]
-for package in REQUIRED_PACKAGES:
-    try:
-        dist = pkg_resources.get_distribution(package)
-        print('{} ({}) is installed'.format(dist.key, dist.version))
-    except pkg_resources.DistributionNotFound:
-        print('{} is NOT installed'.format(package))
-        subprocess.call(['pip', 'install', package])
 local_app_data = os.getenv('LOCALAPPDATA')
 roblox_versions_path = os.path.join(local_app_data, 'Roblox', 'Versions')
 fps_options = ["10", "15", "30", "60", "100", "120", "144", "165", "240", "360", "unlimited", "custom"]
@@ -47,25 +30,19 @@ class FPSDialog(QWidget):
     def createTrayIcon(self):
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon(self.icon_path))
-        show_action = QAction("Show", self)
         quit_action = QAction("Exit", self)
-        hide_action = QAction("Hide", self)
-        edit_action = QAction("Edit", self)  # New Edit action
-        show_action.triggered.connect(self.show)
-        hide_action.triggered.connect(self.hide)
+        edit_action = QAction("Edit", self)
         quit_action.triggered.connect(QApplication.instance().quit)
-        edit_action.triggered.connect(self.restart)  # Connect Edit action to restart method
+        edit_action.triggered.connect(self.restart)
         tray_menu = QMenu()
-        tray_menu.addAction(show_action)
-        tray_menu.addAction(hide_action)
-        tray_menu.addAction(edit_action)  # Add Edit action to the menu
+        tray_menu.addAction(edit_action)
         tray_menu.addAction(quit_action)
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.show()
         self.showDialog()
     def show(self):
-        super().show()  # Call the original show method
-        QTimer.singleShot(1, self.hide)  # Schedule the hide method to be called after 1 millisecond
+        super().show()
+        QTimer.singleShot(1, self.hide)
     def showDialog(self):
         fps, ok = QInputDialog.getItem(self, 'Input FPS', 'Enter the target FPS:', fps_options, 0, False)
         if ok and fps:
@@ -73,13 +50,13 @@ class FPSDialog(QWidget):
                 fps = 10000
             elif fps == "custom":
                 fps, ok = QInputDialog.getInt(self, 'Custom FPS', 'Enter a custom FPS value:')
-                if not ok:  # if the user pressed Cancel, don't update FPS
+                if not ok:
                     return
                 fps = int(fps)
             else:
                 fps = int(fps)
             self.updateFPS(fps)
-        self.show()  # Show the main widget again
+        self.show()
     def updateFPS(self, fps):
         if os.path.exists(roblox_versions_path):
             for folder in os.listdir(roblox_versions_path):
@@ -97,4 +74,5 @@ class FPSDialog(QWidget):
 if __name__ == "__main__":
     app = QApplication([])
     ex = FPSDialog()
+    atexit.register(ex.updateFPS, 60)
     sys.exit(app.exec_())
