@@ -4,7 +4,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QTimer
 local_app_data = os.getenv('LOCALAPPDATA')
 roblox_versions_path = os.path.join(local_app_data, 'Roblox', 'Versions')
-fps_options = ["10", "15", "30", "60", "100", "120", "144", "165", "240", "360", "unlimited", "custom"] // bleh rahh uwu
+fps_options = ["10", "15", "30", "60", "100", "120", "144", "165", "240", "360", "unlimited", "custom"]
 class FPSDialog(QWidget):
     def restart(self):
         """Restart the application."""
